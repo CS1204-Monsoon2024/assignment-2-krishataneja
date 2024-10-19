@@ -1,21 +1,20 @@
-#include "HashTable.cpp"
 int main() {
-    int initialSize = 7; 
-    HashTable ht(initialSize);
-    // Example test case
-    ht.insert(1);
-    ht.printTable();
-    ht.insert(6);
-    ht.printTable();
+    HashTable ht(7);  // Start with a small table size
+
+    ht.insert(10);
+    ht.insert(22);
+    ht.insert(31);
+    ht.insert(4);
     ht.insert(15);
-    ht.printTable(); 
-    ht.insert(25);
-    ht.printTable();
-    ht.remove(15);
-    ht.printTable();
-    ht.insert(29);  
-    ht.printTable(); 
-    int find = ht.search(22);
-    std::cout << "Found at:" << find << std::endl;
+    ht.insert(28);
+
+    ht.display();
+
+    ht.remove(22);
+    ht.display();
+
+    std::cout << "Search for 22: " << (ht.search(22) ? "Found" : "Not found") << std::cout;
+    std::cout << "Search for 15: " << (ht.search(15) ? "Found" : "Not found") << std::cout;
+    
     return 0;
 }
