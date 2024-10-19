@@ -3,9 +3,9 @@
 #include <utility> // for std::pair
 
 class HashTable {
-    std::vector<std::pair<int, bool>> table; // pair for key and deletion flag
+    std::vector<std::pair<int, bool>> table; // Pair of key and deletion flag
     int capacity;
-    int num_elements = 0;
+    int num_elements;
 
     // Hash function
     int hash(int key) {
@@ -33,13 +33,13 @@ class HashTable {
         std::vector<std::pair<int, bool>> new_table(new_capacity, {-1, false});
 
         for (const auto &entry : table) {
-            if (entry.first != -1 && !entry.second) { // only rehash non-deleted entries
-                int idx = entry.first % new_capacity;
+            if (entry.first != -1 && !entry.second) { // Rehash non-deleted entries
+                int idx = hash(entry.first);
                 int probes = 0;
                 while (new_table[idx].first != -1) {
-                    idx = (idx + ++probes * probes) % new_capacity;
+                    idx = (idx + ++probes * probes) % new_capacity; // Quadratic probing
                 }
-                new_table[idx] = {entry.first, false}; // insert into new table
+                new_table[idx] = {entry.first, false}; // Insert into new table
             }
         }
 
@@ -49,7 +49,7 @@ class HashTable {
 
 public:
     // Constructor
-    HashTable(int init_capacity = 7) : capacity(init_capacity) {
+    HashTable(int init_capacity = 7) : capacity(init_capacity), num_elements(0) {
         table.resize(capacity, {-1, false}); // Initialize table with -1 for keys and false for deletion
     }
 
@@ -59,14 +59,16 @@ public:
         int idx = hash(key);
         int probes = 0;
 
-        while (table[idx].first != -1 && probes < 7) { // max_probes can be adjusted
+        while (table[idx].first != -1 && probes < capacity) { // Quadratic probing
             idx = (idx + ++probes * probes) % capacity;
         }
 
-        if (probes < 7) {
-            table[idx] = {key, false}; // Insert the key
-            num_elements++;
-            if (num_elements > capacity * 0.7) resize(); // Resize if load factor > 0.7
+        table[idx] = {key, false}; // Insert the key
+        num_elements++;
+
+        // Resize if load factor exceeds 0.8
+        if (static_cast<double>(num_elements) / capacity > 0.8) {
+            resize();
         }
     }
 
@@ -75,7 +77,7 @@ public:
         int idx = hash(key);
         int probes = 0;
 
-        while (probes < 7) {
+        while (probes < capacity) {
             if (table[idx].first == key && !table[idx].second) {
                 return idx; // Key found
             }
@@ -121,4 +123,3 @@ int main() {
 
     return 0;
 }
-
