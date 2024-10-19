@@ -1,127 +1,65 @@
-#include "HashTable.h"
+#include <iostream>
+#include <list>
+#include <unordered_map>
 
-HashTable::HashTable(int initial_size) {
-    size = initial_size;
-    table = std::vector<int>(size, -1);
-    num_elements = 0;
-    max_probing_limit = size / 2;  // Adjust as needed
-}
+using namespace std;
 
-int HashTable::hash_function(int key) {
-    return key % size;
-}
+template <typename T>
+class Hashtable {
+public:
+    Hashtable(int size) : table(size) {}
 
-bool HashTable::is_prime(int num) {
-    if (num <= 1) {
+    void insert(T data) {
+        int index = hashFunction(data);
+        table[index].push_back(data);
+    }
+
+    bool search(T data) {
+        int index = hashFunction(data);
+        for (const T& item : table[index]) {
+            if (item == data) {
+                return true;
+            }
+        }
         return false;
     }
-    for (int i = 2; i * i <= num; ++i) {
-        if (num % i == 0) {
-            return false;
-        }
-    }
-    return true;
-}
 
-int HashTable::next_prime(int num) {
-    while (!is_prime(num)) {
-        ++num;
-    }
-    return num;
-}
-
-void HashTable::resize() {
-    int new_size = next_prime(size * 2);
-    std::vector<int> new_table(new_size, -1);
-    size = new_size;
-
-    for (int i = 0; i < table.size(); ++i) {
-        if (table[i] != -1) {
-            int key = table[i];
-            int value = table[i + 1];
-            int new_index = hash_function(key);
-            int probe_count = 0;
-
-            while (new_table[new_index] != -1 && probe_count < max_probing_limit) {
-                new_index = (new_index + (probe_count * probe_count)) % size;
-                ++probe_count;
-            }
-
-            if (probe_count >= max_probing_limit) {
-                std::cout << "Max probing limit reached!" << std::endl;
+    void deleteValue(T data) {
+        int index = hashFunction(data);
+        for (auto it = table[index].begin(); it != table[index].end(); ++it) {
+            if (*it == data) {
+                table[index].erase(it);
                 return;
             }
-
-            new_table[new_index] = key;
-            new_table[new_index + 1] = value;
         }
     }
 
-    table = new_table;
-}
-
-void HashTable::insert(int key, int value) {
-    if (search(key) != -1) {
-        std::cout << "Duplicate key insertion is not allowed" << std::endl;
-        return;
-    }
-
-    int index = hash_function(key);
-    int probe_count = 0;
-
-    while (table[index] != -1 && probe_count < max_probing_limit) {
-        index = (index + (probe_count * probe_count)) % size;
-        ++probe_count;
-    }
-
-    if (probe_count >= max_probing_limit) {
-        std::cout << "Max probing limit reached!" << std::endl;
-        return;
-    }
-
-    table[index] = key;
-    table[index + 1] = value;
-    num_elements++;
-
-    if (static_cast<double>(num_elements) / size >= 0.8) {
-        resize();
-    }
-}
-
-int HashTable::search(int key) {
-    int index = hash_function(key);
-    int probe_count = 0;
-
-    while (table[index] != -1 && probe_count < max_probing_limit) {
-        if (table[index] == key) {
-            return index;
+    bool isEquivalent(const Hashtable<T>& other) {
+        if (table.size() != other.table.size()) {
+            return false;
         }
-        index = (index + (probe_count * probe_count)) % size;
-        ++probe_count;
-    }
 
-    return -1;
-}
+        for (int i = 0; i < table.size(); ++i) {
+            if (table[i].size() != other.table[i].size()) {
+                return false;
+            }
 
-void HashTable::remove(int key) {
-    int index = search(key);
-    if (index == -1) {
-        std::cout << "Element not found" << std::endl;
-        return;
-    }
-
-    table[index] = -1;
-    table[index + 1] = -1;
-    num_elements--;
-}
-
-void HashTable::printTable() {
-    for (int i = 0; i < size; ++i) {
-        if (table[i] != -1) {
-            std::cout << table[i] << " ";
-        } else {
-            std::cout << "- ";
+            for (const T& item : table[i]) {
+                if (!other.search(item)) {
+                    return false;
+                }
+            }
         }
+
+        return true;
     }
-    std::cout << std::endl;
-}
+
+private:
+    int hashFunction(T data) {
+        // Implement your own hash function here
+        // For simplicity, let's use a modulo operation
+        return data % table.size();
+    }
+
+    unordered_map<int, list<T>> table;
+};
